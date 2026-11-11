@@ -14,16 +14,18 @@ import {Divider} from '@astryxdesign/core/Divider';
 import {Banner} from '@astryxdesign/core/Banner';
 import {AlertDialog} from '@astryxdesign/core/AlertDialog';
 import {StackItem} from '@astryxdesign/core/Stack';
-import {SparklesIcon, PlusIcon, TrashIcon} from '@heroicons/react/24/outline';
+import {SparklesIcon, PlusIcon, TrashIcon, ArrowPathIcon} from '@heroicons/react/24/outline';
 import {IngredientField} from '@/components/IngredientField';
 import {NoIngredientsDialog} from '@/components/NoIngredientsDialog';
 import {COMMON_AVOID} from '@/lib/sample-data';
-import {useIngredients} from '@/lib/ingredients';
+import {useIngredients, DEFAULT_PANTRY} from '@/lib/ingredients';
 import {useGenerateMealPlan} from '@/lib/meal-plan';
 
 export default function IngredientsPage() {
   // 재료는 이 기기에 저장되고, AI 식단 짜기에 그대로 쓰인다.
-  const {fridge, avoid, setFridge, setAvoid} = useIngredients();
+  const {fridge, avoid, pantry, setFridge, setAvoid, setPantry} = useIngredients();
+  const isDefaultPantry =
+    pantry.length === DEFAULT_PANTRY.length && pantry.every((item, i) => item === DEFAULT_PANTRY[i]);
   const {generate, isGenerating, error} = useGenerateMealPlan();
   const router = useRouter();
   const [isClearOpen, setIsClearOpen] = useState(false);
@@ -78,6 +80,35 @@ export default function IngredientsPage() {
             color="green"
             items={fridge}
             onChange={setFridge}
+          />
+        </VStack>
+      </Card>
+
+      <Card>
+        <VStack gap={4}>
+          <SectionTitle
+            title="기본 재료"
+            count={pantry.length}
+            description="쌀·양념처럼 늘 집에 있는 재료예요. 레시피에서 장보기 표시를 하지 않고, 식단을 짤 때도 있다고 알려줘요."
+            action={
+              !isDefaultPantry && (
+                <Button
+                  label="기본값으로"
+                  variant="ghost"
+                  size="sm"
+                  icon={<Icon icon={ArrowPathIcon} />}
+                  onClick={() => setPantry(DEFAULT_PANTRY)}
+                />
+              )
+            }
+          />
+          <IngredientField
+            label="기본 재료 추가"
+            placeholder="예: 들깨가루, 굴소스"
+            emptyText="기본 재료가 없어요. 레시피의 모든 재료가 냉장고 재료와 비교돼요."
+            color="gray"
+            items={pantry}
+            onChange={setPantry}
           />
         </VStack>
       </Card>

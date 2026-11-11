@@ -64,6 +64,7 @@ export const MealPlanRequestSchema = z.object({
   ingredients: z.object({
     fridge: z.array(z.string().max(40)).max(80),
     avoid: z.array(z.string().max(40)).max(40),
+    pantry: z.array(z.string().max(40)).max(60).optional(),
   }),
   /** 있으면 일주일 전체가 아니라 targets 끼니만 새로 짠다 */
   regenerate: z

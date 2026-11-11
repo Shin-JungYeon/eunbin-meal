@@ -11,7 +11,7 @@ import {Text} from '@astryxdesign/core/Text';
 import {Icon} from '@astryxdesign/core/Icon';
 import {PlusIcon} from '@heroicons/react/24/outline';
 
-type TokenColor = 'green' | 'red';
+type TokenColor = 'green' | 'red' | 'gray';
 
 type Props = {
   label: string;

@@ -31,7 +31,7 @@ import {useIngredients} from '@/lib/ingredients';
 export default function SettingsPage() {
   const {settings, update, reset: resetSettings} = useSettings();
   const today = useTodayIso();
-  const {fridge, avoid} = useIngredients();
+  const {fridge, avoid, pantry} = useIngredients();
   const [resetCount, setResetCount] = useState(0);
   const reset = () => {
     resetSettings();
@@ -129,7 +129,7 @@ export default function SettingsPage() {
             description="AI 식단 짜기를 누르면 이 내용이 그대로 전달돼요. 재료는 재료 관리 화면의 목록이에요."
           />
           <VStack gap={1}>
-            {buildMealPrompt(settings, months, {fridge, avoid}).map((line, i) => (
+            {buildMealPrompt(settings, months, {fridge, avoid, pantry}).map((line, i) => (
               <Text key={i} type="supporting" color="primary">
                 {line}
               </Text>

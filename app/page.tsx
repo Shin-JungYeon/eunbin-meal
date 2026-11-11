@@ -8,6 +8,7 @@ import {StackItem} from '@astryxdesign/core/Stack';
 import {Grid} from '@astryxdesign/core/Grid';
 import {Card} from '@astryxdesign/core/Card';
 import {SelectableCard} from '@astryxdesign/core/SelectableCard';
+import {ClickableCard} from '@astryxdesign/core/ClickableCard';
 import {Text} from '@astryxdesign/core/Text';
 import {Heading} from '@astryxdesign/core/Heading';
 import {Icon} from '@astryxdesign/core/Icon';
@@ -23,6 +24,7 @@ import {
 import {mealPlanStore, useGenerateMealPlan, type MealTarget} from '@/lib/meal-plan';
 import {ingredientsStore} from '@/lib/ingredients';
 import {NoIngredientsDialog} from '@/components/NoIngredientsDialog';
+import {RecipeDialog, type OpenMeal} from '@/components/RecipeDialog';
 import {MEAL_SLOTS, SAMPLE_WEEK, type DayPlan, type Meal} from '@/lib/sample-data';
 import {SLOT_LABEL, type SlotKey, type Weekday} from '@/lib/meal-plan-schema';
 import {useTodayIso} from '@/lib/date';
@@ -53,6 +55,7 @@ export default function WeeklyPlanPage() {
   const [isSelecting, setIsSelecting] = useState(false);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [lastReplaced, setLastReplaced] = useState<string[]>([]);
+  const [openMeal, setOpenMeal] = useState<OpenMeal | null>(null);
 
   const hasFridge = () => {
     if (ingredientsStore.read().fridge.length > 0) return true;
@@ -211,6 +214,9 @@ export default function WeeklyPlanPage() {
             key={day.date}
             day={day}
             isToday={day.date === today}
+            onOpenMeal={(slot, slotLabel) =>
+              setOpenMeal({meal: day[slot], when: `${day.weekday}요일 ${slotLabel}`})
+            }
             selection={
               isSelecting
                 ? {
@@ -226,6 +232,8 @@ export default function WeeklyPlanPage() {
 
       {/* 아래까지 내려가며 고른 경우를 위해 맨 아래에도 같은 버튼 */}
       {isSelecting && regenerateSelectedButton}
+
+      <RecipeDialog open={openMeal} onClose={() => setOpenMeal(null)} />
     </VStack>
   );
 }
@@ -261,7 +269,17 @@ type Selection = {
   isDisabled: boolean;
 };
 
-function DayRow({day, isToday, selection}: {day: DayPlan; isToday: boolean; selection?: Selection}) {
+function DayRow({
+  day,
+  isToday,
+  selection,
+  onOpenMeal,
+}: {
+  day: DayPlan;
+  isToday: boolean;
+  selection?: Selection;
+  onOpenMeal: (slot: SlotKey, slotLabel: string) => void;
+}) {
   return (
     <Card padding={3} variant={isToday ? 'yellow' : 'default'} aria-current={isToday ? 'date' : undefined}>
       <HStack gap={3}>
@@ -279,7 +297,7 @@ function DayRow({day, isToday, selection}: {day: DayPlan; isToday: boolean; sele
           )}
         </VStack>
         <StackItem size="fill">
-          <Grid columns={2} gap={selection ? 2 : 3}>
+          <Grid columns={2} gap={2}>
             {MEAL_SLOTS.map(slot =>
               selection ? (
                 <SelectableCard
@@ -293,7 +311,14 @@ function DayRow({day, isToday, selection}: {day: DayPlan; isToday: boolean; sele
                   <MealCell meal={day[slot.key]} slotLabel={slot.label} />
                 </SelectableCard>
               ) : (
-                <MealCell key={slot.key} meal={day[slot.key]} slotLabel={slot.label} />
+                <ClickableCard
+                  key={slot.key}
+                  label={`${day.weekday} ${slot.label} ${day[slot.key].menu} 레시피 보기`}
+                  onClick={() => onOpenMeal(slot.key, slot.label)}
+                  variant="transparent"
+                  padding={2}>
+                  <MealCell meal={day[slot.key]} slotLabel={slot.label} />
+                </ClickableCard>
               ),
             )}
           </Grid>

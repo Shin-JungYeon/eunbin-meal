@@ -64,7 +64,7 @@ export function parseSettings(raw: unknown): Settings {
 
 // ── AI 프롬프트 조립 ─────────────────────────────────────────────────────────
 
-export type PromptIngredients = {fridge: string[]; avoid: string[]};
+export type PromptIngredients = {fridge: string[]; avoid: string[]; pantry?: string[]};
 
 /**
  * AI에게 보낼 요청 문장. ingredients를 넘기지 않으면 미리보기용 자리표시자를 쓴다.
@@ -95,6 +95,9 @@ export function buildMealPrompt(
   lines.push(
     `절대 쓰면 안 되는 재료: ${ingredients ? list(ingredients.avoid) : '{재료 관리의 못 먹는 재료}'}`,
   );
+  if (ingredients?.pantry && ingredients.pantry.length > 0) {
+    lines.push(`늘 집에 있는 기본 재료: ${ingredients.pantry.join(', ')}`);
+  }
 
   // 켜기/끄기 토글은 없앴다: 목록에 있는 조건은 모두 반영한다.
   // (enabled 값은 나중에 토글을 다시 넣을 때를 위해 저장 데이터에 남겨 둔다)
