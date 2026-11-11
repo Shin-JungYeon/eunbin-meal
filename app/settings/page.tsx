@@ -20,10 +20,12 @@ import {MetadataList, MetadataListItem} from '@astryxdesign/core/MetadataList';
 import {PlusIcon, TrashIcon, ArrowPathIcon} from '@heroicons/react/24/outline';
 import {ageInMonths, feedingStage, formatAge, useTodayIso} from '@/lib/date';
 import {buildMealPrompt, useSettings, type PromptCondition} from '@/lib/settings';
+import {useIngredients} from '@/lib/ingredients';
 
 export default function SettingsPage() {
   const {settings, update, reset: resetSettings} = useSettings();
   const today = useTodayIso();
+  const {fridge, avoid} = useIngredients();
   const [resetCount, setResetCount] = useState(0);
   const reset = () => {
     resetSettings();
@@ -118,10 +120,10 @@ export default function SettingsPage() {
         <VStack gap={3}>
           <SectionTitle
             title="프롬프트 미리보기"
-            description="AI 연동 후 실제로 전달될 내용이에요. {중괄호}는 재료 관리 화면의 목록으로 채워져요."
+            description="AI 식단 짜기를 누르면 이 내용이 그대로 전달돼요. 재료는 재료 관리 화면의 목록이에요."
           />
           <VStack gap={1}>
-            {buildMealPrompt(settings, months).map((line, i) => (
+            {buildMealPrompt(settings, months, {fridge, avoid}).map((line, i) => (
               <Text key={i} type="supporting" color="primary">
                 {line}
               </Text>

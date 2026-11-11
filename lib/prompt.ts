@@ -22,7 +22,7 @@ export const DEFAULT_CONDITIONS: PromptCondition[] = [
   {id: 'not-spicy', label: '맵거나 자극적인 양념 빼기', enabled: true},
   {id: 'choking', label: '질식 위험 재료는 잘게 썰기 (포도, 방울토마토 등)', enabled: true},
   {id: 'fridge-first', label: '냉장고 재료를 우선 활용하기', enabled: true},
-  {id: 'no-repeat', label: '같은 메뉴는 주 2회 이하로', enabled: true},
+  {id: 'no-repeat', label: '같은 메뉴는 주 3회 이하로', enabled: true},
   {id: 'quick', label: '조리 시간 30분 이내', enabled: false},
   {id: 'balanced', label: '끼니마다 단백질·채소·탄수화물 고르게', enabled: true},
 ];
@@ -35,16 +35,28 @@ export const DEFAULT_SETTINGS: Settings = {
   extraNote: '',
 };
 
+// 예전 기본 문구로 저장된 기본 조건은 새 기본 문구로 바꿔 준다 (직접 추가한 조건은 그대로).
+const RENAMED_DEFAULT_LABELS: Record<string, string> = {
+  '같은 메뉴는 주 2회 이하로': '같은 메뉴는 주 3회 이하로',
+};
+
+function migrateCondition(c: PromptCondition): PromptCondition {
+  const renamed = !c.isCustom ? RENAMED_DEFAULT_LABELS[c.label] : undefined;
+  return renamed ? {...c, label: renamed} : c;
+}
+
 export function parseSettings(raw: unknown): Settings {
   const data = (raw ?? {}) as Partial<Settings>;
   return {
     childName: typeof data.childName === 'string' ? data.childName : DEFAULT_SETTINGS.childName,
     birthDate: typeof data.birthDate === 'string' ? data.birthDate : null,
     conditions: Array.isArray(data.conditions)
-      ? data.conditions.filter(
-          (c): c is PromptCondition =>
-            !!c && typeof c.id === 'string' && typeof c.label === 'string',
-        )
+      ? data.conditions
+          .filter(
+            (c): c is PromptCondition =>
+              !!c && typeof c.id === 'string' && typeof c.label === 'string',
+          )
+          .map(migrateCondition)
       : DEFAULT_CONDITIONS,
     extraNote: typeof data.extraNote === 'string' ? data.extraNote : '',
   };
