@@ -4,6 +4,7 @@ import {feedingStage, formatAge} from './age';
 export type PromptCondition = {
   id: string;
   label: string;
+  /** 지금은 쓰지 않음 (토글 제거). 나중에 다시 켜고 끄기를 넣을 때를 위해 남겨 둔다 */
   enabled: boolean;
   /** 사용자가 직접 추가한 조건이면 true (삭제 가능) */
   isCustom?: boolean;
@@ -23,7 +24,6 @@ export const DEFAULT_CONDITIONS: PromptCondition[] = [
   {id: 'choking', label: '질식 위험 재료는 잘게 썰기 (포도, 방울토마토 등)', enabled: true},
   {id: 'fridge-first', label: '냉장고 재료를 우선 활용하기', enabled: true},
   {id: 'no-repeat', label: '같은 메뉴는 주 3회 이하로', enabled: true},
-  {id: 'quick', label: '조리 시간 30분 이내', enabled: false},
   {id: 'balanced', label: '끼니마다 단백질·채소·탄수화물 고르게', enabled: true},
 ];
 
@@ -96,10 +96,11 @@ export function buildMealPrompt(
     `절대 쓰면 안 되는 재료: ${ingredients ? list(ingredients.avoid) : '{재료 관리의 못 먹는 재료}'}`,
   );
 
-  const enabled = settings.conditions.filter(c => c.enabled);
-  if (enabled.length > 0) {
+  // 켜기/끄기 토글은 없앴다: 목록에 있는 조건은 모두 반영한다.
+  // (enabled 값은 나중에 토글을 다시 넣을 때를 위해 저장 데이터에 남겨 둔다)
+  if (settings.conditions.length > 0) {
     lines.push('조건:');
-    enabled.forEach(c => lines.push(`- ${c.label}`));
+    settings.conditions.forEach(c => lines.push(`- ${c.label}`));
   }
 
   const note = settings.extraNote.trim();

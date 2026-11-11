@@ -11,13 +11,19 @@ import {TextInput} from '@astryxdesign/core/TextInput';
 import {DateInput} from '@astryxdesign/core/DateInput';
 import type {ISODateString} from '@astryxdesign/core/Calendar';
 import {TextArea} from '@astryxdesign/core/TextArea';
-import {Switch} from '@astryxdesign/core/Switch';
 import {Button} from '@astryxdesign/core/Button';
 import {IconButton} from '@astryxdesign/core/IconButton';
 import {Icon} from '@astryxdesign/core/Icon';
 import {Divider} from '@astryxdesign/core/Divider';
 import {MetadataList, MetadataListItem} from '@astryxdesign/core/MetadataList';
-import {PlusIcon, TrashIcon, ArrowPathIcon} from '@heroicons/react/24/outline';
+import {
+  PlusIcon,
+  TrashIcon,
+  ArrowPathIcon,
+  PencilSquareIcon,
+  CheckIcon,
+  XMarkIcon,
+} from '@heroicons/react/24/outline';
 import {ageInMonths, feedingStage, formatAge, useTodayIso} from '@/lib/date';
 import {buildMealPrompt, useSettings, type PromptCondition} from '@/lib/settings';
 import {useIngredients} from '@/lib/ingredients';
@@ -96,7 +102,7 @@ export default function SettingsPage() {
         <VStack gap={4}>
           <SectionTitle
             title="AI 식단 조건"
-            description="식단을 짤 때 AI에게 함께 전달할 조건이에요. 켜고 끄거나 직접 추가할 수 있어요."
+            description="식단을 짤 때 AI에게 함께 전달할 조건이에요. 목록에 있는 조건이 모두 반영돼요. 고치거나 지울 수 있고, 직접 추가할 수도 있어요."
           />
           <ConditionList
             conditions={settings.conditions}
@@ -171,30 +177,17 @@ function ConditionList({
 
   return (
     <VStack gap={3}>
+      {conditions.length === 0 && (
+        <Text type="supporting">조건이 없어요. 아래에서 추가하거나 기본값으로 되돌릴 수 있어요.</Text>
+      )}
       {conditions.map(condition => (
-        <HStack key={condition.id} gap={2} vAlign="center">
-          <StackItem size="fill">
-            <Switch
-              label={condition.label}
-              value={condition.enabled}
-              onChange={enabled =>
-                onChange(conditions.map(c => (c.id === condition.id ? {...c, enabled} : c)))
-              }
-              labelPosition="start"
-              labelSpacing="spread"
-              width="100%"
-            />
-          </StackItem>
-          {condition.isCustom && (
-            <IconButton
-              label={`'${condition.label}' 조건 삭제`}
-              icon={<Icon icon={TrashIcon} />}
-              variant="ghost"
-              size="sm"
-              onClick={() => onChange(conditions.filter(c => c.id !== condition.id))}
-            />
-          )}
-        </HStack>
+        <ConditionRow
+          key={condition.id}
+          condition={condition}
+          otherLabels={conditions.filter(c => c.id !== condition.id).map(c => c.label)}
+          onChange={next => onChange(conditions.map(c => (c.id === condition.id ? next : c)))}
+          onDelete={() => onChange(conditions.filter(c => c.id !== condition.id))}
+        />
       ))}
 
       <VStack gap={1}>
@@ -231,6 +224,113 @@ function ConditionList({
         )}
       </VStack>
     </VStack>
+  );
+}
+
+/** 조건 한 줄: 수정 · 삭제 */
+function ConditionRow({
+  condition,
+  otherLabels,
+  onChange,
+  onDelete,
+}: {
+  condition: PromptCondition;
+  otherLabels: string[];
+  onChange: (next: PromptCondition) => void;
+  onDelete: () => void;
+}) {
+  const [isEditing, setIsEditing] = useState(false);
+  const [draft, setDraft] = useState(condition.label);
+  const [error, setError] = useState<string | null>(null);
+
+  const startEdit = () => {
+    setDraft(condition.label);
+    setError(null);
+    setIsEditing(true);
+  };
+
+  const save = () => {
+    const label = draft.trim();
+    if (!label) {
+      setError('조건 내용을 입력해 주세요');
+      return;
+    }
+    if (otherLabels.includes(label)) {
+      setError('이미 있는 조건이에요');
+      return;
+    }
+    // 직접 고친 조건은 기본 문구 자동 변경 대상에서 빠지도록 isCustom으로 표시
+    if (label !== condition.label) onChange({...condition, label, isCustom: true});
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <VStack gap={1}>
+        <HStack gap={1} vAlign="center">
+          <StackItem size="fill">
+            <TextInput
+              label={`'${condition.label}' 조건 수정`}
+              isLabelHidden
+              value={draft}
+              onChange={value => {
+                setDraft(value);
+                setError(null);
+              }}
+              onEnter={save}
+              onKeyDown={e => {
+                if (e.key === 'Escape') setIsEditing(false);
+              }}
+              enterKeyHint="done"
+              hasAutoFocus
+              status={error ? {type: 'error'} : undefined}
+              width="100%"
+            />
+          </StackItem>
+          <IconButton
+            label="수정 저장"
+            icon={<Icon icon={CheckIcon} />}
+            variant="primary"
+            size="sm"
+            onClick={save}
+          />
+          <IconButton
+            label="수정 취소"
+            icon={<Icon icon={XMarkIcon} />}
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsEditing(false)}
+          />
+        </HStack>
+        {error && (
+          <Text type="supporting" role="alert">
+            {error}
+          </Text>
+        )}
+      </VStack>
+    );
+  }
+
+  return (
+    <HStack gap={1} vAlign="center">
+      <StackItem size="fill">
+        <Text type="body">{condition.label}</Text>
+      </StackItem>
+      <IconButton
+        label={`'${condition.label}' 조건 수정`}
+        icon={<Icon icon={PencilSquareIcon} />}
+        variant="ghost"
+        size="sm"
+        onClick={startEdit}
+      />
+      <IconButton
+        label={`'${condition.label}' 조건 삭제`}
+        icon={<Icon icon={TrashIcon} />}
+        variant="ghost"
+        size="sm"
+        onClick={onDelete}
+      />
+    </HStack>
   );
 }
 
