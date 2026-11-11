@@ -39,3 +39,10 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# env 템플릿은 커밋
+!.env.example
+
+# editor
+.vscode
+.claude
