@@ -66,26 +66,20 @@ export function ingredientStatus(
   pantry: string[] = DEFAULT_PANTRY,
 ): IngredientStatus {
   const options = alternatives(name);
-  const fridgeNames = fridge.map(normalizeIngredientName).filter(Boolean);
 
-  // 한쪽이 다른 쪽을 포함하면 같은 재료로 본다 ('소고기 다짐육(우둔)' ↔ '소고기 다짐육').
-  // 단, 한 글자 이름은 똑같을 때만 ('배' ↔ '배추', '파' ↔ '양파' 오인 방지)
+  // 한쪽이 다른 쪽을 포함하면 같은 재료로 본다 ('소고기 다짐육(우둔)' ↔ '소고기 다짐육', '육수' ↔ '멸치육수').
+  // 단, 한 글자 이름은 똑같을 때만 ('배' ↔ '배추', '파' ↔ '양파', '나물' ↔ '물', '쌀국수' ↔ '쌀' 오인 방지)
   const sameIngredient = (a: string, b: string) => {
     if (a === b) return true;
     const [short, long] = a.length <= b.length ? [a, b] : [b, a];
     return short.length >= 2 && long.includes(short);
   };
+
+  const fridgeNames = fridge.map(normalizeIngredientName).filter(Boolean);
   const inFridge = options.some(option => fridgeNames.some(item => sameIngredient(option, item)));
   if (inFridge) return 'fridge';
 
-  // 한 글자 기본 재료(물·밥·쌀·깨)는 이름이 똑같을 때만 인정한다 ('나물', '쌀국수' 오인 방지)
   const pantryNames = pantry.map(normalizeIngredientName).filter(Boolean);
-  const isPantry = options.some(option =>
-    pantryNames.some(
-      base =>
-        option === base ||
-        (base.length >= 2 && (option.endsWith(base) || option.startsWith(base))),
-    ),
-  );
+  const isPantry = options.some(option => pantryNames.some(base => sameIngredient(option, base)));
   return isPantry ? 'pantry' : 'buy';
 }

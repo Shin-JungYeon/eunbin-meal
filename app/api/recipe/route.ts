@@ -2,6 +2,7 @@ import {betaZodOutputFormat} from '@anthropic-ai/sdk/helpers/beta/zod';
 import {ageInMonths, feedingStage, formatAge} from '@/lib/age';
 import {
   FALLBACK_OPTIONS,
+  MAX_TOKENS,
   MODEL,
   SAFETY_RULES,
   checkStop,
@@ -47,7 +48,7 @@ export async function POST(request: Request) {
   try {
     const response = await createClient().beta.messages.parse({
       model: MODEL,
-      max_tokens: 16000,
+      max_tokens: MAX_TOKENS,
       // 레시피는 정해진 메뉴를 풀어 쓰는 일이라 짧게 생각하고 빨리 답하게 한다
       output_config: {effort: 'low', format: betaZodOutputFormat(AiRecipeSchema)},
       ...FALLBACK_OPTIONS,

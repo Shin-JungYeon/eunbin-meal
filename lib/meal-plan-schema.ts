@@ -9,9 +9,14 @@ export const SLOT_LABEL = {breakfast: '아침', dinner: '저녁'} as const;
 export type Weekday = (typeof WEEKDAYS)[number];
 export type SlotKey = (typeof SLOT_KEYS)[number];
 
+const MAX_MEALS_PER_WEEK = WEEKDAYS.length * SLOT_KEYS.length;
+
+// AI 응답과 "골라서 다시 짜기"로 돌려보내는 요청 양쪽에서 같은 상한을 써서 서로 어긋나지 않게 한다.
+const MAX_SIDES = 6;
+
 const MealSchema = z.object({
   menu: z.string().describe('메뉴 이름. 짧게 (예: 소고기 애호박죽)'),
-  sides: z.array(z.string()).describe('곁들임 반찬·과일 1~3개'),
+  sides: z.array(z.string()).max(MAX_SIDES).describe('곁들임 반찬·과일 1~3개'),
 });
 
 const WeekDaySchema = z.object({
@@ -45,7 +50,7 @@ export const AiReplacementSchema = z.object({
 export type MealReplacement = z.infer<typeof AiReplacementSchema>['meals'][number];
 
 const shortText = z.string().max(80);
-const RequestMealSchema = z.object({menu: shortText, sides: z.array(shortText).max(6)});
+const RequestMealSchema = z.object({menu: shortText, sides: z.array(shortText).max(MAX_SIDES)});
 
 /** 브라우저 → API 요청 본문 (길이 제한으로 과도한 입력 차단) */
 export const MealPlanRequestSchema = z.object({
@@ -79,7 +84,7 @@ export const MealPlanRequestSchema = z.object({
       targets: z
         .array(z.object({weekday: z.enum(WEEKDAYS), slot: z.enum(SLOT_KEYS)}))
         .min(1)
-        .max(14),
+        .max(MAX_MEALS_PER_WEEK),
     })
     .optional(),
 });

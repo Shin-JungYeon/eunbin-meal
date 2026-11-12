@@ -127,7 +127,9 @@ export default function WeeklyPlanPage() {
     <VStack gap={4}>
       <VStack gap={1}>
         <Heading level={2}>{range}</Heading>
-        <Text type="supporting">7일 · 아침/저녁 14끼</Text>
+        <Text type="supporting">
+          {week.length}일 · 아침/저녁 {week.length * MEAL_SLOTS.length}끼
+        </Text>
       </VStack>
 
       {plan ? (

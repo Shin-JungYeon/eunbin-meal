@@ -3,6 +3,7 @@ import {ageInMonths} from '@/lib/age';
 import {buildMealPrompt, parseSettings} from '@/lib/prompt';
 import {
   FALLBACK_OPTIONS,
+  MAX_TOKENS,
   MODEL,
   SAFETY_RULES,
   checkStop,
@@ -93,7 +94,7 @@ export async function POST(request: Request) {
 
   try {
     const client = createClient();
-    const common = {model: MODEL, max_tokens: 16000, ...FALLBACK_OPTIONS, system: SYSTEM_PROMPT};
+    const common = {model: MODEL, max_tokens: MAX_TOKENS, ...FALLBACK_OPTIONS, system: SYSTEM_PROMPT};
 
     if (regenerate) {
       // ── 선택한 끼니만 다시 짜기 ──
