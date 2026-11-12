@@ -55,6 +55,7 @@ export default function SettingsPage() {
             value={settings.childName}
             onChange={childName => update({childName})}
             placeholder="예: 은빈"
+            hasClear
             width="100%"
           />
           <DateInput
@@ -205,6 +206,7 @@ function ConditionList({
               placeholder="예: 생선은 주 2회 이상"
               enterKeyHint="done"
               status={error ? {type: 'error'} : undefined}
+              hasClear
               width="100%"
             />
           </StackItem>
@@ -283,6 +285,7 @@ function ConditionRow({
               enterKeyHint="done"
               hasAutoFocus
               status={error ? {type: 'error'} : undefined}
+              hasClear
               width="100%"
             />
           </StackItem>

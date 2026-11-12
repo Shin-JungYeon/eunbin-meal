@@ -74,6 +74,7 @@ export function IngredientField({
               placeholder={placeholder}
               enterKeyHint="done"
               status={error ? {type: 'error'} : undefined}
+              hasClear
               width="100%"
             />
           </StackItem>
