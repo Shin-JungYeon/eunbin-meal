@@ -43,6 +43,11 @@ export function normalizeIngredientName(name: string) {
   return text;
 }
 
+/** 괄호 설명만 뗀 화면 표시용 이름. 전부 괄호 안이라 빈 문자열이 되면 원래 이름을 쓴다. */
+export function displayIngredientName(name: string) {
+  return name.replace(/\([^)]*\)/g, '').trim() || name;
+}
+
 const OR = /또는|혹은|\/|,/;
 
 /**

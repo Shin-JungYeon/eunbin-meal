@@ -4,7 +4,7 @@ import {settingsStore} from './settings';
 import {ingredientsStore} from './ingredients';
 import {toLocalIso} from './age';
 import type {DayPlan} from './sample-data';
-import type {MealPlanRequest, MealPlanResponse, SlotKey, Weekday} from './meal-plan-schema';
+import {WEEKDAYS, type MealPlanRequest, type MealPlanResponse, type SlotKey, type Weekday} from './meal-plan-schema';
 
 export type GeneratedPlan = {
   days: DayPlan[];
@@ -20,7 +20,7 @@ export const mealPlanStore = createLocalStore<GeneratedPlan | null>(
   null,
   raw => {
     const data = raw as GeneratedPlan | null;
-    return data && Array.isArray(data.days) && data.days.length === 7 ? data : null;
+    return data && Array.isArray(data.days) && data.days.length === WEEKDAYS.length ? data : null;
   },
 );
 

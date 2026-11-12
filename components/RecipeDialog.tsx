@@ -19,7 +19,7 @@ import {Icon} from '@astryxdesign/core/Icon';
 import {ShoppingCartIcon, CheckCircleIcon} from '@heroicons/react/24/outline';
 import {useRecipe} from '@/lib/recipe';
 import {useIngredients} from '@/lib/ingredients';
-import {ingredientStatus} from '@/lib/shopping';
+import {displayIngredientName, ingredientStatus} from '@/lib/shopping';
 import type {Meal} from '@/lib/sample-data';
 import type {AiRecipe} from '@/lib/recipe-schema';
 
@@ -118,7 +118,7 @@ function IngredientList({ingredients}: {ingredients: AiRecipe['ingredients']}) {
     <VStack gap={2}>
       <Text type="supporting">
         {toBuy.length > 0
-          ? `장보기 필요 ${toBuy.length}개: ${toBuy.map(row => row.name.replace(/\([^)]*\)/g, '').trim()).join(', ')}`
+          ? `장보기 필요 ${toBuy.length}개: ${toBuy.map(row => displayIngredientName(row.name)).join(', ')}`
           : '냉장고 재료와 기본 재료로 만들 수 있어요.'}
       </Text>
       <List density="compact" hasDividers>

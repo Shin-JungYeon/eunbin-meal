@@ -80,7 +80,7 @@ export const MealPlanRequestSchema = z.object({
             dinner: RequestMealSchema,
           }),
         )
-        .length(7),
+        .length(WEEKDAYS.length),
       targets: z
         .array(z.object({weekday: z.enum(WEEKDAYS), slot: z.enum(SLOT_KEYS)}))
         .min(1)

@@ -142,7 +142,7 @@ export async function POST(request: Request) {
     if (failure) return failure;
 
     const plan = response.parsed_output;
-    if (!plan || plan.days.length !== 7) {
+    if (!plan || plan.days.length !== WEEKDAYS.length) {
       return errorResponse(502, 'AI 응답 형식이 올바르지 않아요. 다시 시도해 주세요.');
     }
     // 요일 순서를 월~일로 고정

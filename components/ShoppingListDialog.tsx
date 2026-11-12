@@ -17,7 +17,7 @@ import {SHEET_QUERY} from '@/components/RecipeDialog';
 import {createLocalStore} from '@/lib/local-store';
 import {useCachedRecipes, useBulkFetchStatus, fetchMissingRecipes} from '@/lib/recipe';
 import {useIngredients} from '@/lib/ingredients';
-import {ingredientStatus, normalizeIngredientName} from '@/lib/shopping';
+import {displayIngredientName, ingredientStatus, normalizeIngredientName} from '@/lib/shopping';
 import {MEAL_SLOTS, type DayPlan, type Meal} from '@/lib/sample-data';
 import type {AiRecipe} from '@/lib/recipe-schema';
 
@@ -53,7 +53,7 @@ function buildShoppingGroups(
       const key = normalizeIngredientName(item.name);
       // 체크해서 냉장고로 넘어간 재료는 상태가 바뀌어도 (샀다는 표시로) 계속 보여 준다.
       if (ingredientStatus(item.name, fridge, pantry) !== 'buy' && !checked.has(key)) continue;
-      const displayName = item.name.replace(/\([^)]*\)/g, '').trim() || item.name;
+      const displayName = displayIngredientName(item.name);
       const group = groups.get(key) ?? {key, displayName, items: []};
       group.items.push({when, amount: item.amount});
       groups.set(key, group);
