@@ -24,7 +24,7 @@ import type {Meal} from '@/lib/sample-data';
 import type {AiRecipe} from '@/lib/recipe-schema';
 
 // 휴대폰·좁은 화면은 아래에서 올라오는 시트, 넓은 화면은 가운데 팝업
-const SHEET_QUERY = '(max-width: 640px), (pointer: coarse) and (hover: none)';
+export const SHEET_QUERY = '(max-width: 640px), (pointer: coarse) and (hover: none)';
 
 export type OpenMeal = {meal: Meal; when: string};
 

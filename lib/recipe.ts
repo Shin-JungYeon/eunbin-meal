@@ -103,3 +103,9 @@ export function useRecipe(meal: Meal | null) {
     retry,
   };
 }
+
+/** 이미 열어서 저장된 레시피만 돌려준다 (없으면 null). 새로 AI를 부르지 않는다 */
+export function useCachedRecipes(meals: Meal[]): (AiRecipe | null)[] {
+  const [recipes] = recipeStore.useValue();
+  return meals.map(meal => recipes[cacheKey(meal)]?.recipe ?? null);
+}

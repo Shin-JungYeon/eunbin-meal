@@ -20,11 +20,13 @@ import {
   SparklesIcon,
   ArrowPathIcon,
   CursorArrowRaysIcon,
+  ShoppingCartIcon,
 } from '@heroicons/react/24/outline';
 import {mealPlanStore, useGenerateMealPlan, type MealTarget} from '@/lib/meal-plan';
 import {ingredientsStore} from '@/lib/ingredients';
 import {NoIngredientsDialog} from '@/components/NoIngredientsDialog';
 import {RecipeDialog, type OpenMeal} from '@/components/RecipeDialog';
+import {ShoppingListDialog} from '@/components/ShoppingListDialog';
 import {MEAL_SLOTS, SAMPLE_WEEK, type DayPlan, type Meal} from '@/lib/sample-data';
 import {SLOT_LABEL, type SlotKey, type Weekday} from '@/lib/meal-plan-schema';
 import {useTodayIso} from '@/lib/date';
@@ -56,6 +58,7 @@ export default function WeeklyPlanPage() {
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [lastReplaced, setLastReplaced] = useState<string[]>([]);
   const [openMeal, setOpenMeal] = useState<OpenMeal | null>(null);
+  const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
 
   const hasFridge = () => {
     if (ingredientsStore.read().fridge.length > 0) return true;
@@ -233,6 +236,15 @@ export default function WeeklyPlanPage() {
       {/* 아래까지 내려가며 고른 경우를 위해 맨 아래에도 같은 버튼 */}
       {isSelecting && regenerateSelectedButton}
 
+      <Button
+        label="이번 주 장보기 목록"
+        variant="secondary"
+        width="100%"
+        icon={<Icon icon={ShoppingCartIcon} />}
+        onClick={() => setIsShoppingListOpen(true)}
+      />
+
+      <ShoppingListDialog isOpen={isShoppingListOpen} onOpenChange={setIsShoppingListOpen} days={week} />
       <RecipeDialog open={openMeal} onClose={() => setOpenMeal(null)} />
     </VStack>
   );

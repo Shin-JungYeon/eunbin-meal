@@ -33,8 +33,11 @@ const SYNONYMS: Record<string, string> = {
   계육: '닭고기',
 };
 
-/** 괄호 설명·공백을 지우고 동의어를 맞춘다. 예: '소고기 다짐육(우둔)' → '소고기다짐육' */
-function normalize(name: string) {
+/**
+ * 괄호 설명·공백을 지우고 동의어를 맞춘다. 예: '소고기 다짐육(우둔)' → '소고기다짐육'
+ * 장보기 목록에서 같은 재료를 한데 묶을 때도 쓴다.
+ */
+export function normalizeIngredientName(name: string) {
   let text = name.replace(/\([^)]*\)/g, '').replace(/\s+/g, '');
   for (const [from, to] of Object.entries(SYNONYMS)) text = text.replaceAll(from, to);
   return text;
@@ -47,11 +50,14 @@ const OR = /또는|혹은|\/|,/;
  * '물 또는 무염 채수', '닭 안심(또는 닭가슴살)'처럼 괄호 안의 대안도 후보로 본다.
  */
 function alternatives(name: string) {
+  // 괄호를 먼저 떼어야 한다: 구분자가 괄호 안에 있으면(예: '밥(진밥 또는 일반 밥)')
+  // 괄호를 안 뗀 채로 나눌 때 조각마다 괄호가 반쪽만 남아 기본 이름과 안 맞게 된다.
+  const base = name.replace(/\([^)]*\)/g, '');
   const inParens = [...name.matchAll(/\(([^)]*)\)/g)]
     .map(m => m[1])
     .filter(text => OR.test(text))
     .flatMap(text => text.split(OR));
-  return [...name.split(OR), ...inParens].map(normalize).filter(Boolean);
+  return [...base.split(OR), ...inParens].map(normalizeIngredientName).filter(Boolean);
 }
 
 export function ingredientStatus(
@@ -60,7 +66,7 @@ export function ingredientStatus(
   pantry: string[] = DEFAULT_PANTRY,
 ): IngredientStatus {
   const options = alternatives(name);
-  const fridgeNames = fridge.map(normalize).filter(Boolean);
+  const fridgeNames = fridge.map(normalizeIngredientName).filter(Boolean);
 
   // 한쪽이 다른 쪽을 포함하면 같은 재료로 본다 ('소고기 다짐육(우둔)' ↔ '소고기 다짐육').
   // 단, 한 글자 이름은 똑같을 때만 ('배' ↔ '배추', '파' ↔ '양파' 오인 방지)
@@ -73,7 +79,7 @@ export function ingredientStatus(
   if (inFridge) return 'fridge';
 
   // 한 글자 기본 재료(물·밥·쌀·깨)는 이름이 똑같을 때만 인정한다 ('나물', '쌀국수' 오인 방지)
-  const pantryNames = pantry.map(normalize).filter(Boolean);
+  const pantryNames = pantry.map(normalizeIngredientName).filter(Boolean);
   const isPantry = options.some(option =>
     pantryNames.some(
       base =>
