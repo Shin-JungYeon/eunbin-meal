@@ -48,7 +48,7 @@ function buildBaseRequest(today: string): MealPlanRequest {
     settings: {
       childName: settings.childName,
       birthDate: settings.birthDate,
-      conditions: settings.conditions.map(({id, label, enabled}) => ({id, label, enabled})),
+      conditions: settings.conditions.map(({id, label}) => ({id, label})),
       extraNote: settings.extraNote,
     },
     ingredients: ingredientsStore.read(),

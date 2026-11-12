@@ -4,10 +4,6 @@ import {feedingStage, formatAge} from './age';
 export type PromptCondition = {
   id: string;
   label: string;
-  /** 지금은 쓰지 않음 (토글 제거). 나중에 다시 켜고 끄기를 넣을 때를 위해 남겨 둔다 */
-  enabled: boolean;
-  /** 사용자가 직접 추가한 조건이면 true (삭제 가능) */
-  isCustom?: boolean;
 };
 
 export type Settings = {
@@ -19,12 +15,12 @@ export type Settings = {
 };
 
 export const DEFAULT_CONDITIONS: PromptCondition[] = [
-  {id: 'low-salt', label: '간은 최대한 약하게 (소금·간장 최소)', enabled: true},
-  {id: 'not-spicy', label: '맵거나 자극적인 양념 빼기', enabled: true},
-  {id: 'choking', label: '질식 위험 재료는 잘게 썰기 (포도, 방울토마토 등)', enabled: true},
-  {id: 'fridge-first', label: '냉장고 재료를 우선 활용하기', enabled: true},
-  {id: 'no-repeat', label: '같은 메뉴는 주 3회 이하로', enabled: true},
-  {id: 'balanced', label: '끼니마다 단백질·채소·탄수화물 고르게', enabled: true},
+  {id: 'low-salt', label: '간은 최대한 약하게 (소금·간장 최소)'},
+  {id: 'not-spicy', label: '맵거나 자극적인 양념 빼기'},
+  {id: 'choking', label: '질식 위험 재료는 잘게 썰기 (포도, 방울토마토 등)'},
+  {id: 'fridge-first', label: '냉장고 재료를 우선 활용하기'},
+  {id: 'no-repeat', label: '같은 메뉴는 주 3회 이하로'},
+  {id: 'balanced', label: '끼니마다 단백질·채소·탄수화물 고르게'},
 ];
 
 // 샘플 기본값 (생년월일은 하드코딩된 예시)
@@ -35,28 +31,16 @@ export const DEFAULT_SETTINGS: Settings = {
   extraNote: '',
 };
 
-// 예전 기본 문구로 저장된 기본 조건은 새 기본 문구로 바꿔 준다 (직접 추가한 조건은 그대로).
-const RENAMED_DEFAULT_LABELS: Record<string, string> = {
-  '같은 메뉴는 주 2회 이하로': '같은 메뉴는 주 3회 이하로',
-};
-
-function migrateCondition(c: PromptCondition): PromptCondition {
-  const renamed = !c.isCustom ? RENAMED_DEFAULT_LABELS[c.label] : undefined;
-  return renamed ? {...c, label: renamed} : c;
-}
-
 export function parseSettings(raw: unknown): Settings {
   const data = (raw ?? {}) as Partial<Settings>;
   return {
     childName: typeof data.childName === 'string' ? data.childName : DEFAULT_SETTINGS.childName,
     birthDate: typeof data.birthDate === 'string' ? data.birthDate : null,
     conditions: Array.isArray(data.conditions)
-      ? data.conditions
-          .filter(
-            (c): c is PromptCondition =>
-              !!c && typeof c.id === 'string' && typeof c.label === 'string',
-          )
-          .map(migrateCondition)
+      ? data.conditions.filter(
+          (c): c is PromptCondition =>
+            !!c && typeof c.id === 'string' && typeof c.label === 'string',
+        )
       : DEFAULT_CONDITIONS,
     extraNote: typeof data.extraNote === 'string' ? data.extraNote : '',
   };
@@ -100,7 +84,6 @@ export function buildMealPrompt(
   }
 
   // 켜기/끄기 토글은 없앴다: 목록에 있는 조건은 모두 반영한다.
-  // (enabled 값은 나중에 토글을 다시 넣을 때를 위해 저장 데이터에 남겨 둔다)
   if (settings.conditions.length > 0) {
     lines.push('조건:');
     settings.conditions.forEach(c => lines.push(`- ${c.label}`));

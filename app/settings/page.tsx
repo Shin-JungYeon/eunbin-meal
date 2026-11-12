@@ -170,7 +170,7 @@ function ConditionList({
       setError('이미 있는 조건이에요');
       return;
     }
-    onChange([...conditions, {id: `custom-${Date.now()}`, label, enabled: true, isCustom: true}]);
+    onChange([...conditions, {id: `custom-${Date.now()}`, label}]);
     setDraft('');
     setError(null);
   };
@@ -259,8 +259,7 @@ function ConditionRow({
       setError('이미 있는 조건이에요');
       return;
     }
-    // 직접 고친 조건은 기본 문구 자동 변경 대상에서 빠지도록 isCustom으로 표시
-    if (label !== condition.label) onChange({...condition, label, isCustom: true});
+    if (label !== condition.label) onChange({...condition, label});
     setIsEditing(false);
   };
 

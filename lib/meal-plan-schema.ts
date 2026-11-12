@@ -56,9 +56,7 @@ export const MealPlanRequestSchema = z.object({
       .string()
       .regex(/^\d{4}-\d{2}-\d{2}$/)
       .nullable(),
-    conditions: z
-      .array(z.object({id: z.string().max(80), label: z.string().max(120), enabled: z.boolean()}))
-      .max(30),
+    conditions: z.array(z.object({id: z.string().max(80), label: z.string().max(120)})).max(30),
     extraNote: z.string().max(300),
   }),
   ingredients: z.object({
