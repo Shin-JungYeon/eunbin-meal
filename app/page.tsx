@@ -21,9 +21,11 @@ import {
   ArrowPathIcon,
   CursorArrowRaysIcon,
   ShoppingCartIcon,
+  CheckCircleIcon,
 } from '@heroicons/react/24/outline';
 import {mealPlanStore, useGenerateMealPlan, type MealTarget} from '@/lib/meal-plan';
 import {ingredientsStore} from '@/lib/ingredients';
+import {useIsRecipeCached} from '@/lib/recipe';
 import {NoIngredientsDialog} from '@/components/NoIngredientsDialog';
 import {RecipeDialog, type OpenMeal} from '@/components/RecipeDialog';
 import {ShoppingListDialog} from '@/components/ShoppingListDialog';
@@ -341,11 +343,15 @@ function DayRow({
 }
 
 function MealCell({meal, slotLabel}: {meal: Meal; slotLabel: string}) {
+  const isChecked = useIsRecipeCached(meal);
   return (
-    <VStack gap={1} aria-label={`${slotLabel}: ${meal.menu}`}>
-      <Text type="body" weight="semibold" textWrap="pretty">
-        {meal.menu}
-      </Text>
+    <VStack gap={1} aria-label={`${slotLabel}: ${meal.menu}${isChecked ? ' (레시피 확인함)' : ''}`}>
+      <HStack gap={1} vAlign="center">
+        <Text type="body" weight="semibold" textWrap="pretty">
+          {meal.menu}
+        </Text>
+        {isChecked && <Icon icon={CheckCircleIcon} size="sm" color="success" label="레시피 확인함" />}
+      </HStack>
       <Text type="supporting" textWrap="pretty">
         {meal.sides.join(' · ')}
       </Text>

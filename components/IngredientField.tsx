@@ -10,6 +10,7 @@ import {Token} from '@astryxdesign/core/Token';
 import {Text} from '@astryxdesign/core/Text';
 import {Icon} from '@astryxdesign/core/Icon';
 import {PlusIcon} from '@heroicons/react/24/outline';
+import {normalizeIngredientName} from '@/lib/shopping';
 
 type TokenColor = 'green' | 'red' | 'gray';
 
@@ -20,10 +21,20 @@ type Props = {
   color: TokenColor;
   items: string[];
   onChange: (items: string[]) => void;
+  /** 다른 목록(예: 냉장고 재료 ↔ 기본 재료)과 겹치는 이름은 막는다 */
+  otherList?: {items: string[]; label: string};
 };
 
 /** 재료 이름을 입력해 칩(Token)으로 추가/삭제하는 필드 */
-export function IngredientField({label, placeholder, emptyText, color, items, onChange}: Props) {
+export function IngredientField({
+  label,
+  placeholder,
+  emptyText,
+  color,
+  items,
+  onChange,
+  otherList,
+}: Props) {
   const [draft, setDraft] = useState('');
   const [error, setError] = useState<string | null>(null);
 
@@ -32,6 +43,13 @@ export function IngredientField({label, placeholder, emptyText, color, items, on
     if (!name) return;
     if (items.includes(name)) {
       setError(`'${name}'은(는) 이미 있어요`);
+      return;
+    }
+    const inOtherList = otherList?.items.some(
+      other => normalizeIngredientName(other) === normalizeIngredientName(name),
+    );
+    if (inOtherList) {
+      setError(`'${name}'은(는) 이미 ${otherList?.label}에 있어요`);
       return;
     }
     onChange([...items, name]);

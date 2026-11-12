@@ -80,6 +80,7 @@ export default function IngredientsPage() {
             color="green"
             items={fridge}
             onChange={setFridge}
+            otherList={{items: pantry, label: '기본 재료'}}
           />
         </VStack>
       </Card>
@@ -109,6 +110,7 @@ export default function IngredientsPage() {
             color="gray"
             items={pantry}
             onChange={setPantry}
+            otherList={{items: fridge, label: '냉장고 재료'}}
           />
         </VStack>
       </Card>

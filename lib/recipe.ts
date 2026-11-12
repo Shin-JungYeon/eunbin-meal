@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useEffect, useState, useSyncExternalStore} from 'react';
 import {createLocalStore} from './local-store';
 import {settingsStore} from './settings';
 import {ingredientsStore} from './ingredients';
@@ -108,4 +108,20 @@ export function useRecipe(meal: Meal | null) {
 export function useCachedRecipes(meals: Meal[]): (AiRecipe | null)[] {
   const [recipes] = recipeStore.useValue();
   return meals.map(meal => recipes[cacheKey(meal)]?.recipe ?? null);
+}
+
+const noSubscription = () => () => {};
+
+/** 서버(또는 prerender)에서는 false, 하이드레이션 뒤 브라우저에서만 true */
+function useIsClient() {
+  return useSyncExternalStore(noSubscription, () => true, () => false);
+}
+
+/** 이 끼니의 레시피를 한 번이라도 열어 본 적 있는지 */
+export function useIsRecipeCached(meal: Meal): boolean {
+  const [recipes] = recipeStore.useValue();
+  // 모든 끼니 칸에서 항상 렌더되므로, 캐시 키 계산(현재 시각 포함)은 브라우저에서만 한다
+  // (prerender와 안 맞는 값이라 Next.js가 경고하는 걸 피한다).
+  const isClient = useIsClient();
+  return isClient && cacheKey(meal) in recipes;
 }
