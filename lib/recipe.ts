@@ -110,6 +110,52 @@ export function useCachedRecipes(meals: Meal[]): (AiRecipe | null)[] {
   return meals.map(meal => recipes[cacheKey(meal)]?.recipe ?? null);
 }
 
+export type BulkFetchStatus = {done: number; total: number} | null;
+
+// 여러 레시피를 한 번에 불러오는 중인지는 팝업을 닫아도 계속 진행되므로,
+// 특정 컴포넌트가 아니라 모듈 전역에 둬서 어디서든(팝업이 닫혀 있어도) 볼 수 있게 한다.
+let bulkFetchStatus: BulkFetchStatus = null;
+const bulkFetchListeners = new Set<() => void>();
+
+function setBulkFetchStatus(next: BulkFetchStatus) {
+  bulkFetchStatus = next;
+  bulkFetchListeners.forEach(listener => listener());
+}
+
+/** 지금 여러 레시피를 한 번에 불러오는 중이면 진행 상황을, 아니면 null을 돌려준다 */
+export function useBulkFetchStatus(): BulkFetchStatus {
+  return useSyncExternalStore(
+    listener => {
+      bulkFetchListeners.add(listener);
+      return () => bulkFetchListeners.delete(listener);
+    },
+    () => bulkFetchStatus,
+    () => null,
+  );
+}
+
+/**
+ * 아직 캐시되지 않은 끼니들의 레시피를 하나씩 차례로 불러온다 (여러 개를 한꺼번에 부르지 않음).
+ * 호출한 화면(팝업)을 닫아도 끝까지 진행되며, 진행 상황은 useBulkFetchStatus로 어디서든 볼 수 있다.
+ * 하나가 실패해도 나머지는 계속 진행한다. 저장은 기존처럼 recipeStore에 바로바로 반영된다.
+ */
+export async function fetchMissingRecipes(meals: Meal[]): Promise<void> {
+  const cache = recipeStore.read();
+  const toFetch = meals.filter(meal => !(cacheKey(meal) in cache));
+  if (toFetch.length === 0) return;
+
+  setBulkFetchStatus({done: 0, total: toFetch.length});
+  for (const [i, meal] of toFetch.entries()) {
+    try {
+      await fetchRecipe(cacheKey(meal), meal);
+    } catch {
+      // 하나 실패해도 나머지는 계속 불러온다. 남은 끼니는 버튼을 다시 눌러 이어서 시도할 수 있다.
+    }
+    setBulkFetchStatus({done: i + 1, total: toFetch.length});
+  }
+  setBulkFetchStatus(null);
+}
+
 const noSubscription = () => () => {};
 
 /** 서버(또는 prerender)에서는 false, 하이드레이션 뒤 브라우저에서만 true */

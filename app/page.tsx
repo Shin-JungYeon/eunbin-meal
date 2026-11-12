@@ -14,6 +14,7 @@ import {Heading} from '@astryxdesign/core/Heading';
 import {Icon} from '@astryxdesign/core/Icon';
 import {Banner} from '@astryxdesign/core/Banner';
 import {Button} from '@astryxdesign/core/Button';
+import {Spinner} from '@astryxdesign/core/Spinner';
 import {
   SunIcon,
   MoonIcon,
@@ -25,7 +26,7 @@ import {
 } from '@heroicons/react/24/outline';
 import {mealPlanStore, useGenerateMealPlan, type MealTarget} from '@/lib/meal-plan';
 import {ingredientsStore} from '@/lib/ingredients';
-import {useIsRecipeCached} from '@/lib/recipe';
+import {useIsRecipeCached, useBulkFetchStatus} from '@/lib/recipe';
 import {NoIngredientsDialog} from '@/components/NoIngredientsDialog';
 import {RecipeDialog, type OpenMeal} from '@/components/RecipeDialog';
 import {ShoppingListDialog} from '@/components/ShoppingListDialog';
@@ -61,6 +62,7 @@ export default function WeeklyPlanPage() {
   const [lastReplaced, setLastReplaced] = useState<string[]>([]);
   const [openMeal, setOpenMeal] = useState<OpenMeal | null>(null);
   const [isShoppingListOpen, setIsShoppingListOpen] = useState(false);
+  const bulkFetchStatus = useBulkFetchStatus();
 
   const hasFridge = () => {
     if (ingredientsStore.read().fridge.length > 0) return true;
@@ -239,10 +241,14 @@ export default function WeeklyPlanPage() {
       {isSelecting && regenerateSelectedButton}
 
       <Button
-        label="이번 주 장보기 목록"
+        label={
+          bulkFetchStatus
+            ? `장보기 목록 레시피 불러오는 중 (${bulkFetchStatus.done}/${bulkFetchStatus.total})`
+            : '이번 주 장보기 목록'
+        }
         variant="secondary"
         width="100%"
-        icon={<Icon icon={ShoppingCartIcon} />}
+        icon={bulkFetchStatus ? <Spinner size="sm" /> : <Icon icon={ShoppingCartIcon} />}
         onClick={() => setIsShoppingListOpen(true)}
       />
 

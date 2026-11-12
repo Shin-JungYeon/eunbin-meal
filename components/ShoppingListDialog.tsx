@@ -10,9 +10,12 @@ import {Heading} from '@astryxdesign/core/Heading';
 import {Text} from '@astryxdesign/core/Text';
 import {List, ListItem} from '@astryxdesign/core/List';
 import {CheckboxInput} from '@astryxdesign/core/CheckboxInput';
+import {Button} from '@astryxdesign/core/Button';
+import {Icon} from '@astryxdesign/core/Icon';
+import {SparklesIcon} from '@heroicons/react/24/outline';
 import {SHEET_QUERY} from '@/components/RecipeDialog';
 import {createLocalStore} from '@/lib/local-store';
-import {useCachedRecipes} from '@/lib/recipe';
+import {useCachedRecipes, useBulkFetchStatus, fetchMissingRecipes} from '@/lib/recipe';
 import {useIngredients} from '@/lib/ingredients';
 import {ingredientStatus, normalizeIngredientName} from '@/lib/shopping';
 import {MEAL_SLOTS, type DayPlan, type Meal} from '@/lib/sample-data';
@@ -97,11 +100,19 @@ function ShoppingListBody({days}: {days: DayPlan[]}) {
   const {fridge, pantry, setFridge} = useIngredients();
   const [checkedKeys, setCheckedKeys] = checkedStore.useValue();
   const checked = new Set(checkedKeys);
+  const bulkFetchStatus = useBulkFetchStatus();
 
   const weekMeals = flattenWeek(days);
   const recipes = useCachedRecipes(weekMeals.map(w => w.meal));
   const openedCount = recipes.filter(Boolean).length;
   const groups = buildShoppingGroups(weekMeals, recipes, fridge, pantry, checked);
+
+  // 안 열어본 끼니의 레시피를 차례로 불러온다. 팝업을 닫아도 끝까지 진행되고,
+  // 하나씩 끝날 때마다 캐시에 반영돼 (열려 있다면) 목록이 바로 갱신된다.
+  const fetchAll = () => {
+    const missing = weekMeals.filter((_, i) => !recipes[i]).map(w => w.meal);
+    fetchMissingRecipes(missing);
+  };
 
   // 체크하면 냉장고 재료에 더하고, 체크 해제하면 방금 더했던 그 이름을 다시 뺀다.
   // 이미 기본 재료 등으로 커버되는 재료(장보기 필요가 아님)는 냉장고에 중복으로 넣지 않는다.
@@ -123,8 +134,23 @@ function ShoppingListBody({days}: {days: DayPlan[]}) {
     <VStack gap={3}>
       <Text type="supporting">
         {openedCount}/{weekMeals.length}끼 레시피 확인함
-        {openedCount < weekMeals.length && ' — 메뉴를 눌러 레시피를 열면 여기에 더해져요.'}
       </Text>
+
+      {openedCount < weekMeals.length && (
+        <Button
+          label={
+            bulkFetchStatus
+              ? `레시피 불러오는 중 (${bulkFetchStatus.done}/${bulkFetchStatus.total})`
+              : `나머지 ${weekMeals.length - openedCount}끼 레시피 한 번에 불러오기`
+          }
+          variant="secondary"
+          size="sm"
+          icon={<Icon icon={SparklesIcon} />}
+          onClick={fetchAll}
+          isLoading={!!bulkFetchStatus}
+          isDisabled={!!bulkFetchStatus}
+        />
+      )}
 
       {groups.length > 0 ? (
         <List density="compact" hasDividers>
