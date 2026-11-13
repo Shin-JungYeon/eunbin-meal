@@ -3,17 +3,20 @@
 import type {ReactNode} from 'react';
 import {usePathname} from 'next/navigation';
 import {Layout, LayoutHeader, LayoutContent, LayoutFooter} from '@astryxdesign/core/Layout';
+import {HStack} from '@astryxdesign/core/HStack';
 import {VStack} from '@astryxdesign/core/VStack';
 import {Heading} from '@astryxdesign/core/Heading';
 import {Text} from '@astryxdesign/core/Text';
 import {Icon} from '@astryxdesign/core/Icon';
+import {IconButton} from '@astryxdesign/core/IconButton';
 import {Tab, TabList} from '@astryxdesign/core/TabList';
-import {CalendarDaysIcon, ShoppingBagIcon, Cog6ToothIcon} from '@heroicons/react/24/outline';
+import {CalendarDaysIcon, ShoppingBagIcon, Cog6ToothIcon, SunIcon, MoonIcon} from '@heroicons/react/24/outline';
 import {
   CalendarDaysIcon as CalendarDaysSolid,
   ShoppingBagIcon as ShoppingBagSolid,
   Cog6ToothIcon as Cog6ToothSolid,
 } from '@heroicons/react/24/solid';
+import {useThemeMode} from '@/components/Providers';
 
 const TABS = [
   {
@@ -46,6 +49,7 @@ const TABS = [
 export function AppFrame({children}: {children: ReactNode}) {
   const pathname = usePathname();
   const current = TABS.find(tab => tab.href === pathname) ?? TABS[0];
+  const {mode, toggleMode} = useThemeMode();
 
   return (
     <VStack height="100dvh">
@@ -54,10 +58,19 @@ export function AppFrame({children}: {children: ReactNode}) {
         contentWidth={560}
         header={
           <LayoutHeader hasDivider>
-            <VStack gap={0.5}>
-              <Text type="supporting">은빈이 식단</Text>
-              <Heading level={1}>{current.label}</Heading>
-            </VStack>
+            <HStack justify="between" align="center">
+              <VStack gap={0.5}>
+                <Text type="supporting">은빈이 식단</Text>
+                <Heading level={1}>{current.label}</Heading>
+              </VStack>
+              <IconButton
+                variant="ghost"
+                label={mode === 'light' ? '다크 모드로 전환' : '라이트 모드로 전환'}
+                tooltip={mode === 'light' ? '다크 모드' : '라이트 모드'}
+                icon={<Icon icon={mode === 'light' ? MoonIcon : SunIcon} />}
+                onClick={toggleMode}
+              />
+            </HStack>
           </LayoutHeader>
         }
         content={<LayoutContent label={current.subtitle}>{children}</LayoutContent>}
